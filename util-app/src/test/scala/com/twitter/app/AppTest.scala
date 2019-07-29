@@ -311,6 +311,19 @@ class AppTest extends FunSuite {
     assert(closed)
   }
 
+  test("App: exit even if the ShutdownTimer doesn't schedule timeout promptly") {
+
+    val app = new TestApp(() => ())
+
+    app.closeOnExit(new Closable with CloseAwaitably {
+      def close(deadline: Time) = closeAwaitably(Future.never)
+    })
+
+    assert(!app.killed)
+    app.main(Array.empty)
+    assert(app.killed)
+  }
+
   test("App: exit functions properly capture non-fatal exceptions") {
     val app = new ErrorOnExitApp {
       def main(): Unit = {
